@@ -1,6 +1,18 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 
-#include "settings.h"                       // Contains all user-relevant settings
+#include "settings.h"                                   // Contains all user-relevant settings (general)
+
+// !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
+#if (HAL == 1)
+    #include "settings-lolin32.h"                       // Contains all user-relevant settings for Wemos Lolin32
+#elif (HAL == 2)
+    #include "settings-espa1s.h"                        // Contains all user-relevant settings for ESP32-A1S Audiokit
+#elif (HAL == 3)
+    #include "settings-lolin_d32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
+#elif (HAL == 4)
+    #include "settings-lolin_d32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
+#endif
+
 #include <ESP32Encoder.h>
 #include "Arduino.h"
 #include <WiFi.h>
@@ -22,8 +34,12 @@
     #include "SD.h"
 #endif
 #include "esp_task_wdt.h"
-#ifdef RFID_READER_TYPE_MFRC522
-    #include <MFRC522.h>
+#ifdef RFID_READER_TYPE_MFRC522_SPI
+        #include <MFRC522.h>
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_I2C
+    #include "Wire.h"
+    #include <MFRC522_I2C.h>
 #endif
 #ifdef RFID_READER_TYPE_PN5180
     #include <PN5180.h>
@@ -32,6 +48,7 @@
 #endif
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
+    #define MQTT_SOCKET_TIMEOUT 1               // https://github.com/knolleary/pubsubclient/issues/403
     #include <PubSubClient.h>
 #endif
 #include <WebServer.h>
@@ -56,9 +73,6 @@
 #include <nvsDump.h>
 
 
-// Info-docs:
-// https://docs.aws.amazon.com/de_de/freertos-kernel/latest/dg/queue-management.html
-// https://arduino-esp8266.readthedocs.io/en/latest/PROGMEM.html#how-do-i-declare-a-global-flash-string-and-use-it
 
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
@@ -255,15 +269,30 @@ AsyncEventSource events("/events");
 
 // Audio/mp3
 #ifndef SD_MMC_1BIT_MODE
-SPIClass spiSD(HSPI);
-fs::FS FSystem = (fs::FS)SD;
+    SPIClass spiSD(HSPI);
+    fs::FS FSystem = (fs::FS)SD;
 #else
-fs::FS FSystem = (fs::FS)SD_MMC;
+    fs::FS FSystem = (fs::FS)SD_MMC;
 #endif
+
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
+
 #ifdef NEOPIXEL_ENABLE
     TaskHandle_t LED;
+#endif
+
+#if (HAL == 2)
+    #include "AC101.h"
+    static TwoWire i2cBusOne = TwoWire(0);
+    static AC101 ac(i2cBusOne);
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_SPI
+    static MFRC522 mfrc522(RFID_CS, RST_PIN);
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_I2C
+    static TwoWire i2cBusTwo = TwoWire(1);
+    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, i2cBusTwo);
 #endif
 
 // FTP
@@ -371,7 +400,6 @@ void volumeToQueueSender(const int32_t _newVolume);
 wl_status_t wifiManager(void);
 bool writeWifiStatusToNVS(bool wifiStatus);
 
-
 /* Wrapper-Funktion for Serial-logging (with newline) */
 void loggerNl(const char *str, const uint8_t logLevel) {
   if (serialDebug >= logLevel) {
@@ -399,7 +427,6 @@ int countChars(const char* string, char ch) {
 
     return count;
 }
-
 
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
@@ -849,8 +876,8 @@ bool reconnect() {
         // Deepsleep-subscription
         MQTTclient.subscribe((char *) FPSTR(topicSleepCmnd));
 
-        // Trackname-subscription
-        MQTTclient.subscribe((char *) FPSTR(topicTrackCmnd));
+        // RFID-Tag-ID-subscription
+        MQTTclient.subscribe((char *) FPSTR(topicRfidCmnd));
 
         // Loudness-subscription
         MQTTclient.subscribe((char *) FPSTR(topicLoudnessCmnd));
@@ -910,7 +937,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     }
 
     // New track to play? Take RFID-ID as input
-    else if (strcmp_P(topic, topicTrackCmnd) == 0) {
+    else if (strcmp_P(topic, topicRfidCmnd) == 0) {
         char *_rfidId = strdup(receivedString);
         xQueueSend(rfidCardQueue, &_rfidId, 0);
         //free(_rfidId);
@@ -1387,6 +1414,7 @@ void playAudio(void *parameter) {
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio.setVolume(initVolume);
 
+
     uint8_t currentVolume;
     static BaseType_t trackQStatus;
     static uint8_t trackCommand = 0;
@@ -1428,7 +1456,7 @@ void playAudio(void *parameter) {
                 if(currentRfidTagId != NULL){
                     strncpy(playProperties.playRfidTag, currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
                 }
-                
+
             }
             if (playProperties.trackFinished) {
                 playProperties.trackFinished = false;
@@ -1567,7 +1595,7 @@ void playAudio(void *parameter) {
                             #endif
                             audioReturnCode = audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
                             // consider track as finished, when audio lib call was not successful
-                            if(!audioReturnCode) {
+                            if (!audioReturnCode) {
                                 #ifdef NEOPIXEL_ENABLE
                                     showLedError = true;
                                 #endif
@@ -1764,17 +1792,9 @@ void playAudio(void *parameter) {
 }
 
 
-#ifdef RFID_READER_TYPE_MFRC522
+#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
-    static MFRC522 mfrc522(RFID_CS, RST_PIN);
-    #ifndef SINGLE_SPI_ENABLE
-        SPI.begin();
-    #endif
-    mfrc522.PCD_Init();
-    mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
-    delay(4);
-    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     byte cardId[cardIdSize];
     char *cardIdString;
 
@@ -1823,6 +1843,7 @@ void rfidScanner(void *parameter) {
                 }
             }
             xQueueSend(rfidCardQueue, &cardIdString, 0);
+//            free(cardIdString);
         }
     }
     vTaskDelete(NULL);
@@ -1851,7 +1872,6 @@ void rfidScanner(void *parameter) {
     loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     byte cardId[cardIdSize], lastCardId[cardIdSize];
     char *cardIdString;
-    uint8_t lastUID[10];
 
     for (;;) {
         esp_task_wdt_reset();
@@ -1903,7 +1923,7 @@ void rfidScanner(void *parameter) {
             uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
             ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
             if (ISO15693_EC_OK == myrc) {
-                Serial.println("disable PrivacyMode successful");
+                Serial.println(F("disabling privacy-mode successful"));
             }
             // try to read ISO15693 inventory
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
@@ -2280,8 +2300,9 @@ void showLed(void *parameter) {
                             for (uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
                                     leds[ledAddress(led)] = CRGB::Red;
-                                } else if (!playProperties.pausePlay) { // Hue-rainbow
-                                    leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
+                                } else if (!playProperties.pausePlay) {
+                                    // leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led)); // green to red
+                                    leds[ledAddress(led)].setHue((uint8_t) ((double) 255 / NUM_LEDS) * led); // Hue-rainbow
                                 }
                             }
                             if (playProperties.pausePlay) {
@@ -3022,6 +3043,9 @@ void rfidPreferenceLookupHandler (void) {
             if (_playMode >= 100) {
                 doRfidCardModifications(_playMode);
             } else {
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicRfidState), currentRfidTagId, false);
+                #endif
                 trackQueueDispatcher(_file, _lastPlayPos, _playMode, _trackLastPlayed);
             }
         }
@@ -3073,7 +3097,6 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     accessPointStarted = true;
 }
 
-
 // Reads stored WiFi-status from NVS
 bool getWifiEnableStatusFromNVS(void) {
     uint32_t wifiStatus = prefsSettings.getUInt("enableWifi", 99);
@@ -3110,6 +3133,7 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
             return true;
         }
     }
+    return true;
 }
 
 
@@ -3203,6 +3227,8 @@ wl_status_t wifiManager(void) {
     return WiFi.status();
 }
 
+const char mqttTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i> MQTT</a>";
+const char ftpTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i> FTP</a>";
 
 // Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
 String templateProcessor(const String& templ) {
@@ -3214,6 +3240,12 @@ String templateProcessor(const String& templ) {
         return String(ftpUserLength-1);
     } else if (templ == "FTP_PWD_LENGTH") {
         return String(ftpPasswordLength-1);
+    } else if (templ == "SHOW_FTP_TAB") {         // Only show FTP-tab if FTP-support was compiled
+        #ifdef FTP_ENABLE
+            return (String) FPSTR(ftpTab);
+        #else
+            return String();
+        #endif
     } else if (templ == "INIT_LED_BRIGHTNESS") {
         return String(prefsSettings.getUChar("iLedBrightness", 0));
     } else if (templ == "NIGHT_LED_BRIGHTNESS") {
@@ -3236,6 +3268,12 @@ String templateProcessor(const String& templ) {
         return String(prefsSettings.getUInt("vCheckIntv", voltageCheckInterval));
     } else if (templ == "MQTT_SERVER") {
         return prefsSettings.getString("mqttServer", "-1");
+    } else if (templ == "SHOW_MQTT_TAB") {        // Only show MQTT-tab if MQTT-support was compiled
+        #ifdef MQTT_ENABLE
+            return (String) FPSTR(mqttTab);
+        #else
+            return String();
+        #endif
     } else if (templ == "MQTT_ENABLE") {
         if (enableMqtt) {
             return String("checked=\"checked\"");
@@ -3459,7 +3497,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
-        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint(client->id()));
+        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint8_t(client->id()));
     } else if (type == WS_EVT_ERROR) {
         //error was received from the other end
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -3548,7 +3586,6 @@ bool isNumber(const char *str) {
 
 }
 
-
 void webserverStart(void) {
     if (wifiManager() == WL_CONNECTED && !webserverStarted) {
     // attach AsyncWebSocket for Mgmt-Interface
@@ -3559,7 +3596,7 @@ void webserverStart(void) {
     wServer.addHandler(&events);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(FSystem, "/index.html");
+        request->send(FSystem, "/management.html", String(), false, templateProcessor);
     });
 
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
@@ -3598,7 +3635,6 @@ void webserverStart(void) {
     webserverStarted = true;
     }
 }
-
 
 // Dumps all RFID-entries from NVS into a file on SD-card
     bool dumpNvsToSd(char *_namespace, char *_destFile) {
@@ -3801,7 +3837,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
                 }
             }
         } else {
-            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exitst", asciiFilePath);
+            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exist", asciiFilePath);
             loggerNl(logBuf, LOGLEVEL_ERROR);
         }
     } else {
@@ -3975,42 +4011,72 @@ void setup() {
     );
 #endif
 
+#if (HAL == 2)
+    i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
-    #ifndef SINGLE_SPI_ENABLE
-       #ifdef SD_MMC_1BIT_MODE
-        pinMode(2, INPUT_PULLUP);
-      #else
-        // Init uSD-SPI
-        pinMode(SPISD_CS, OUTPUT);
-        digitalWrite(SPISD_CS, HIGH);
-        spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
-        spiSD.setFrequency(1000000);
-      #endif
-    #else
-        //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
-        SPI.begin();
+    while (not ac.begin()) {
+        Serial.println(F("AC101 Failed!"));
+        delay(1000);
+    }
+    Serial.println(F("AC101 via I2C - OK!"));
+
+    pinMode(22, OUTPUT);
+    digitalWrite(22, HIGH);
+
+    pinMode(GPIO_PA_EN, OUTPUT);
+    digitalWrite(GPIO_PA_EN, HIGH);
+    Serial.println(F("Built-in amplifier enabled\n"));
+#endif
+
+    #ifdef RFID_READER_TYPE_MFRC522_SPI
+        #if (HAL == 4)
+            SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);     // ToDo: Not sure if this should be the default-case
+        #else
+            SPI.begin();
+        #endif
         SPI.setFrequency(1000000);
     #endif
 
     #ifndef SINGLE_SPI_ENABLE
         #ifdef SD_MMC_1BIT_MODE
+            pinMode(2, INPUT_PULLUP);
             while (!SD_MMC.begin("/sdcard", true)) {
         #else
+            pinMode(SPISD_CS, OUTPUT);
+            digitalWrite(SPISD_CS, HIGH);
+            spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
+            spiSD.setFrequency(1000000);
             while (!SD.begin(SPISD_CS, spiSD)) {
         #endif
     #else
-        while (!SD.begin(SPISD_CS)) {
+        #ifdef SD_MMC_1BIT_MODE
+            pinMode(2, INPUT_PULLUP);
+            while (!SD_MMC.begin("/sdcard", true)) {
+        #else
+            while (!SD.begin(SPISD_CS)) {
+        #endif
     #endif
-            loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
-            delay(500);
-            #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-                if (millis() >= deepsleepTimeAfterBootFails*1000) {
-                    loggerNl((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
-                    esp_deep_sleep_start();
-                }
-            #endif
+                loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
+                delay(500);
+                #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
+                    if (millis() >= deepsleepTimeAfterBootFails*1000) {
+                        loggerNl((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
+                        esp_deep_sleep_start();
+                    }
+                #endif
+            }
 
-        }
+    #ifdef RFID_READER_TYPE_MFRC522_I2C
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+        delay(50);
+        loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    #endif
+
+    #ifdef RFID_READER_TYPE_MFRC522_SPI
+        mfrc522.PCD_Init();
+        delay(50);
+        loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    #endif
 
    // welcome message
    Serial.println(F(""));
@@ -4322,18 +4388,21 @@ void setup() {
     // Create empty index json-file when no file exists.
     if (!fileExists(FSystem,DIRECTORY_INDEX_FILE)) {
         createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
-        ESP.restart();
+        esp_deep_sleep_start();
     }
     bootComplete = true;
 
     snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
     loggerNl(logBuf, LOGLEVEL_DEBUG);
+    Serial.printf("PSRAM: %u bytes\n", ESP.getPsramSize());
 }
 
 
 void loop() {
     webserverStart();
-    ftpManager();
+    #ifdef FTP_ENABLE
+        ftpManager();
+    #endif
     #ifdef HEADPHONE_ADJUST_ENABLE
         headphoneVolumeManager();
     #endif
@@ -4396,10 +4465,6 @@ void audio_showstation(const char *info) {
     #ifdef MQTT_ENABLE
         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
     #endif
-}
-void audio_showstreaminfo(const char *info) {
-    snprintf(logBuf, serialLoglength, "streaminfo  : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
 }
 void audio_showstreamtitle(const char *info) {
     snprintf(logBuf, serialLoglength, "streamtitle : %s", info);

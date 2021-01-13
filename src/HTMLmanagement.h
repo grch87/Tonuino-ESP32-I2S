@@ -34,7 +34,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             width: 30px;\
             top: -5px;\
         }\
-     \
+\
         legend.scheduler-border {\
             width:inherit; /* Or auto */\
             padding:0 10px; /* To give a bit of padding on the left and right */\
@@ -117,15 +117,31 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <nav>\
         <div class=\"container nav nav-tabs\" id=\"nav-tab\" role=\"tablist\">\
             <a class=\"nav-item nav-link active\" id=\"nav-rfid-tab\" data-toggle=\"tab\" href=\"#nav-rfid\" role=\"tab\" aria-controls=\"nav-rfid\" aria-selected=\"true\"><i class=\"fas fa-dot-circle\"></i> RFID</a>\
+            <a class=\"nav-item nav-link\" id=\"nav-files-tab\" data-toggle=\"tab\" href=\"#nav-files\" role=\"tab\" aria-controls=\"nav-files\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i> Dateien</a>\
             <a class=\"nav-item nav-link\" id=\"nav-wifi-tab\" data-toggle=\"tab\" href=\"#nav-wifi\" role=\"tab\" aria-controls=\"nav-wifi\" aria-selected=\"false\"><i class=\"fas fa-wifi\"></i><span class=\".d-sm-none .d-md-block\"> WLAN</span></a>\
-            <a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i> MQTT</a>\
-            <a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i> FTP</a>\
+            %SHOW_MQTT_TAB%\
+            %SHOW_FTP_TAB%\
             <a class=\"nav-item nav-link\" id=\"nav-general-tab\" data-toggle=\"tab\" href=\"#nav-general\" role=\"tab\" aria-controls=\"nav-general\" aria-selected=\"false\"><i class=\"fas fa-sliders-h\"></i> Allgemein</a>\
             <a class=\"nav-item nav-link\" id=\"nav-tools-tab\" data-toggle=\"tab\" href=\"#nav-tools\" role=\"tab\" aria-controls=\"nav-tools\" aria-selected=\"false\"><i class=\"fas fa-wrench\"></i> Tools</a>\
         </div>\
     </nav>\
 <br>\
 <div class=\"tab-content\" id=\"nav-tabContent\">\
+    <div class=\"tab-pane fade\" id=\"nav-files\" role=\"tabpanel\" aria-labelledby=\"nav-files-tab\">\
+        <div class=\"container\" id=\"fileExplorer\">\
+            <div class=\"ui-widget\">\
+                <div class=\"filetree demo\" id=\"explorerTree\"></div>\
+\
+                <form id=\"explorerUploadForm\" method=\"POST\" enctype=\"multipart/form-data\" action=\"/explorer\" accept-charset=\"iso-8859-1\">\
+                    <input id=\"explorerUploadedFiles\" type=\"file\" class=\"form-control-file\" name=\"explorerUploadFiles\" multiple> <input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Hochladen\">\
+                </form>\
+                <div>\
+                    <progress id=\"explorerUploadProgress\" style=\"margin-top:10px\" value=\"0\" max=\"100\"></progress> <span id=\"explorerUploadPercent\"></span>\
+                </div>\
+\
+            </div>\
+        </div>\
+    </div>\
     <div class=\"tab-pane fade\" id=\"nav-wifi\" role=\"tabpanel\" aria-labelledby=\"nav-wifi-tab\">\
         <div class=\"container\" id=\"wifiConfig\">\
             <form action=\"#wifiConfig\" method=\"POST\" onsubmit=\"wifiConfig('wifiConfig'); return false\">\
@@ -252,7 +268,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"mqttUser\">MQTT-Benutzername (optional):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"mqttUser\" maxlength=\"%MQTT_USER_LENGTH%\"\
                            placeholder=\"Benutzername\" name=\"mqttUser\" value=\"%MQTT_USER%\">\
-                    <label for=\"mqttPwd\">Passwort (optional):</label>\
+                    <label for=\"mqttPwd\">MQTT-Passwort (optional):</label>\
                     <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"%MQTT_PWD_LENGTH%\"\
                            placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
                 </div>\
@@ -272,7 +288,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"ftpUser\">FTP-Benutzername:</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"%FTP_USER_LENGTH%\"\
                            placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
-                    <label for=\"pwd\">Passwort:</label>\
+                    <label for=\"pwd\">FTP-Passwort:</label>\
                     <input type=\"password\" class=\"form-control\" id=\"ftpPwd\" maxlength=\"%FTP_PWD_LENGTH%\" placeholder=\"Passwort\"\
                            name=\"ftpPwd\" value=\"%FTP_PWD%\" required>\
                 </div>\
@@ -297,13 +313,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\"\
                         data-slider-value=\"%INIT_VOLUME%\"  value=\"%INIT_VOLUME%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i></div>\
                         <br>\
-                    <label for=\"maxVolumeSpeaker\">Maximal Lautsprecher</label>\
+                    <label for=\"maxVolumeSpeaker\">Maximal (Lautsprecher)</label>\
                         <div class=\"text-center\">\
                      <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i>   <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\"\
                         data-slider-value=\"%MAX_VOLUME_SPEAKER%\"  value=\"%MAX_VOLUME_SPEAKER%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                         <br>\
-                    <label for=\"maxVolumeHeadphone\">Maximal Kopfhörer</label>\
+                    <label for=\"maxVolumeHeadphone\">Maximal (Kopfhörer)</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\"\
                          data-slider-value=\"%MAX_VOLUME_HEADPHONE%\" value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
@@ -344,21 +360,21 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <legend>Batterie</legend>\
                     <div>Status über Neopixel anzeigen</div>\
                         <br>\
-                    <label for=\"warningLowVoltage\">Spannungsgrenze für Status Anzeige.\
+                    <label for=\"warningLowVoltage\">Unter dieser Spannung wird eine Warnung angezeigt.\
                     </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input  data-provide=\"slider\"  data-slider-step=\"0.1\" data-slider-min=\"3.0\" data-slider-max=\"5.0\"  min=\"3.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"warningLowVoltage\" name=\"warningLowVoltage\"\
                         data-slider-value=\"%WARNING_LOW_VOLTAGE%\" value=\"%WARNING_LOW_VOLTAGE%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
 <br>\
-                    <label for=\"voltageIndicatorLow\">Unterer Akkuspannungslevel\
+                    <label for=\"voltageIndicatorLow\">Eine LED leuchtet bei dieser Spannung\
                         </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"2.0\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" max=\"5.0\"type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
                           data-slider-value=\"%VOLTAGE_INDICATOR_LOW%\"  value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
                         <br>\
-                        <label for=\"voltageIndicatorHigh\">Oberer Akkuspannungslevel</label>\
+                        <label for=\"voltageIndicatorHigh\">Alle LEDs leuchten bei dieser Spannung</label>\
 \
                             <div class=\"text-center\">\
                                 <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i><input data-provide=\"slider\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" min=\"2.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorHigh\" name=\"voltageIndicatorHigh\"\
@@ -366,7 +382,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         </div>\
 \
                         <br>\
-                    <label for=\"voltageCheckInterval\"> Interval der Messung (in Minuten)</label>\
+                    <label for=\"voltageCheckInterval\">Zeitabstand der Messung (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
                             <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
                                    data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
@@ -443,6 +459,399 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         });\
     }\
 \
+    /* File Explorer functions begin*/\
+    var lastSelectedNodePath = \"\";\
+\
+    $('#explorerTree').on('select_node.jstree', function (e, data) {\
+\
+        $('input[name=fileOrUrl]').val(data.node.data.path);\
+\
+        if (data.node.type == \"folder\") {\
+            $('.option-folder').show();\
+            $('.option-file').hide();\
+            $('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);\
+        }\
+\
+        if (data.node.type == \"audio\") {\
+            $('.option-file').show();\
+            $('.option-folder').hide();\
+            $('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);\
+        }\
+\
+        if(lastSelectedNodePath != data.node.data.path) {\
+            if (data.node.data.directory) {\
+\
+                var ref = $('#explorerTree').jstree(true),\
+                    sel = ref.get_selected();\
+                if(!sel.length) { return false; }\
+                sel = sel[0];\
+                var children = $(\"#explorerTree\").jstree(\"get_children_dom\",sel);\
+                /* refresh only, when there is no child -> possible not yet updated */\
+                if(children.length < 1){\
+                    refreshNode(sel);\
+                }\
+\
+            }\
+         lastSelectedNodePath = data.node.data.path;\
+        }\
+\
+\
+    });\
+\
+	function doRest(path, callback, obj) {\
+		obj.url      = path;\
+		obj.dataType = \"json\";\
+		obj.contentType= \"application/json;charset=iso-8859-1\",\
+		obj.scriptCharset= \"iso-8859-1\",\
+		obj.success  = function(data, textStatus, jqXHR) {\
+			if (callback) {\
+				callback(data);\
+			}\
+		};\
+		obj.error    = function(jqXHR, textStatus, errorThrown) {\
+			console.log(\"AJAX error\");\
+			/*debugger; */\
+		};\
+		jQuery.ajax(obj);\
+	} /* doRest */\
+\
+	function getData(path, callback) {\
+		doRest(path, callback, {\
+			method   : \"GET\"\
+		});\
+	} /* getData */\
+\
+	function deleteData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"DELETE\",\
+			data: _data\
+		});\
+	} /* deleteData */\
+\
+	function patchData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"PATCH\",\
+			data: _data\
+		});\
+	} /* patchData */\
+\
+	function postData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"POST\",\
+			data: _data\
+		});\
+	} /* postData */\
+\
+\
+	function putData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"PUT\",\
+			data: _data\
+		});\
+	} /* putData */\
+\
+\
+	/* File Upload */\
+	$('#explorerUploadForm').submit(function(e){\
+		e.preventDefault();\
+		console.log(\"Upload!\");\
+		var data = new FormData(this);\
+\
+		var ref = $('#explorerTree').jstree(true),\
+			sel = ref.get_selected(),\
+			path = \"/\";\
+		if(!sel.length) { alert(\"Please select the upload location!\");return false; }\
+		sel = sel[0];\
+		selectedNode = ref.get_node(sel);\
+		if(selectedNode.data.directory){\
+			path = selectedNode.data.path\
+		} else {\
+			/* remap sel to parent folder */\
+			sel = ref.get_node(ref.get_parent(sel));\
+			path = parentNode.data.path;\
+			console.log(\"Parent path: \" + path);\
+		}\
+\
+		$.ajax({\
+			url: '/explorer?path=' + path,\
+            type: 'POST',\
+            data: data,\
+            contentType: false,\
+            processData:false,\
+			xhr: function() {\
+				var xhr = new window.XMLHttpRequest();\
+\
+				xhr.upload.addEventListener(\"progress\", function(evt) {\
+				  if (evt.lengthComputable) {\
+					var percentComplete = evt.loaded / evt.total;\
+					percentComplete = parseInt(percentComplete * 100);\
+					console.log(percentComplete);\
+					document.getElementById(\"explorerUploadProgress\").value = percentComplete;\
+					document.getElementById(\"explorerUploadPercent\").innerHTML = percentComplete + \"%\";\
+\
+					if (percentComplete === 100) {\
+\
+					}\
+\
+                    Sleep(1000);\
+\
+				  }\
+				}, false);\
+\
+				return xhr;\
+			},\
+			success: function(data, textStatus, jqXHR) {\
+				console.log(\"Upload success!\");\
+\
+				getData(\"/explorer?path=\" + path, function(data) {\
+					/* We now have data! */\
+					deleteChildrenNodes(sel);\
+					addFileDirectory(sel, data);\
+					ref.open_node(sel);\
+\
+\
+				});\
+\
+			}\
+        });\
+	});\
+\
+	/* File Delete */\
+	function handleDeleteData(nodeId) {\
+		var ref = $('#explorerTree').jstree(true);\
+		var node = ref.get_node(nodeId);\
+		var children = $(\"#explorerTree\").jstree(\"get_children_dom\",nodeId);\
+		console.log(children.length);\
+		if(node.data.directory) {\
+			if(children.length > 0) {\
+				for(var i=0;i<children.length;i++)\
+				{\
+					console.log(\"call delete function for: \" + children[i].text);\
+					handleDeleteData(children[i].id);\
+				}\
+			}\
+		}\
+		console.log(\"call delete request: \" + node.data.path);\
+		deleteData(\"/explorer?path=\" + node.data.path);\
+	}\
+    function Sleep(milliseconds) {\
+     return new Promise(resolve => setTimeout(resolve, milliseconds));\
+    }\
+	function fileNameSort( a, b ) {\
+		if ( a.dir && !b.dir ) {\
+			return -1\
+		}\
+		if ( !a.dir && b.dir ) {\
+			return 1\
+		}\
+		if ( a.name < b.name ){\
+			return -1;\
+		}\
+		if ( a.name > b.name ){\
+			return 1;\
+		}\
+		return 0;\
+	}\
+\
+	function createChild(nodeId, data) {\
+		var ref = $('#explorerTree').jstree(true);\
+		var node = ref.get_node(nodeId);\
+		var child = {\
+			text: data.name,\
+			type: getType(data),\
+			data: {\
+				path: node.data.path + \"/\" + data.name,\
+				directory: data.dir\
+			}\
+		}\
+\
+		return child;\
+\
+	}\
+\
+	function deleteChildrenNodes(nodeId) {\
+		var ref = $('#explorerTree').jstree(true);\
+		var children = $(\"#explorerTree\").jstree(\"get_children_dom\",nodeId);\
+		for(var i=0;i<children.length;i++)\
+		{\
+			ref.delete_node(children[i].id);\
+		}\
+\
+	}\
+\
+	function refreshNode(nodeId) {\
+\
+		var ref = $('#explorerTree').jstree(true);\
+\
+		var node = ref.get_node(nodeId);\
+\
+		getData(\"/explorer?path=\" + node.data.path, function(data) {\
+			/* We now have data! */\
+\
+			deleteChildrenNodes(nodeId);\
+			addFileDirectory(nodeId, data);\
+			ref.open_node(nodeId);\
+\
+		});\
+\
+\
+	}\
+\
+	function getType(data) {\
+		var type = \"\";\
+\
+		if(data.dir) {\
+			type = \"folder\";\
+		} else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {\
+			type = \"audio\";\
+		} else {\
+			type = \"file\";\
+		}\
+\
+		return type;\
+	}\
+\
+\
+	function addFileDirectory(parent, data) {\
+\
+		data.sort( fileNameSort );\
+		var ref = $('#explorerTree').jstree(true);\
+\
+		for (var i=0; i<data.length; i++) {\
+			console.log(\"Create Node\");\
+			ref.create_node(parent, createChild(parent, data[i]));\
+		}\
+	} /* addFileDirectory */\
+\
+	function buildFileSystemTree(path) {\
+\
+		$('#explorerTree').jstree({\
+				\"core\" : {\
+						\"check_callback\" : true,\
+						'force_text' : true,\
+						\"themes\" : { \"stripes\" : true },\
+						'data' : {	text: '/',\
+									state: {\
+										opened: true\
+									},\
+									type: 'folder',\
+									children: [],\
+									data: {\
+										path: '/',\
+										directory: true\
+								}}\
+					},\
+					'types': {\
+						'folder': {\
+							'icon': \"fa fa-folder\"\
+						},\
+						'file': {\
+							'icon': \"fa fa-file\"\
+						},\
+						'audio': {\
+							'icon': \"fa fa-file-audio\"\
+						},\
+						'default': {\
+							'icon': \"fa fa-folder\"\
+						}\
+					},\
+				plugins: [\"contextmenu\", \"themes\", \"types\"],\
+				contextmenu: {\
+					items: function(nodeId) {\
+						var ref = $('#explorerTree').jstree(true);\
+						var node = ref.get_node(nodeId);\
+						var items = {};\
+\
+\
+						if (node.data.directory) {\
+							items.createDir = {\
+							label: \"Neuer Ordner\",\
+							action: function(x) {\
+								var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
+								if(childNode) {\
+									ref.edit(childNode, null, function(childNode, status){\
+										putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
+										refreshNode(nodeId);\
+									});\
+								}\
+							}\
+						}\
+						}\
+\
+						/* Play */\
+						items.play = {\
+							label: \"Abspielen\",\
+							action: function(x) {\
+								var playMode = node.data.directory?\"5\":\"1\";\
+								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
+							}\
+						}\
+\
+						/* Refresh */\
+						items.refresh = {\
+							label: \"Aktualisieren\",\
+							action: function(x) {\
+								refreshNode(nodeId);\
+							}\
+						}\
+\
+						/* Delete */\
+						items.delete = {\
+							label: \"Loeschen\",\
+							action: function(x) {\
+								handleDeleteData(nodeId);\
+								refreshNode(ref.get_parent(nodeId));\
+							}\
+						}\
+\
+						/* Rename */\
+						items.rename = {\
+							label: \"Umbenennen\",\
+							action: function(x) {\
+								var srcPath = node.data.path;\
+								ref.edit(nodeId, null, function(node, status){\
+									node.data.path = node.data.path.substring(0,node.data.path.lastIndexOf(\"/\")+1) + node.text;\
+									patchData(\"/explorer?srcpath=\" + srcPath + \"&dstpath=\" + node.data.path);\
+									refreshNode(ref.get_parent(nodeId));\
+								});\
+							}\
+						}\
+\
+					   return items;\
+					}\
+				}\
+			});\
+\
+		if (path.length == 0) {\
+			return;\
+		}\
+		getData(\"/explorer?path=/\", function(data) {\
+			/* We now have data! */\
+			$('#explorerTree').jstree(true).settings.core.data.children = [];\
+\
+			data.sort( fileNameSort );\
+\
+\
+			for (var i=0; i<data.length; i++) {\
+				var newChild = {\
+					text: data[i].name,\
+					type: getType(data[i]),\
+					data: {\
+						path: \"/\" + data[i].name,\
+						directory: data[i].dir\
+					},\
+					children: []\
+				}\
+				$('#explorerTree').jstree(true).settings.core.data.children.push(newChild);\
+			}\
+\
+			$(\"#explorerTree\").jstree(true).refresh();\
+\
+\
+		});\
+	} /* buildFileSystemTree */\
+\
+    /* File Explorer functions end */\
     function renderFileTree() {\
 \
         var filesURI = \"/files\";\
@@ -715,6 +1124,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     $(document).ready(function () {\
         connect();\
         renderFileTree();\
+		buildFileSystemTree(\"/\");\
 \
         console.log(parseInt(document.getElementById('warningLowVoltage').value));\
         $(function () {\
