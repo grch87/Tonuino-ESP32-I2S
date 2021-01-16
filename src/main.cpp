@@ -89,7 +89,6 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #endif
 
 #ifdef MEASURE_BATTERY_VOLTAGE
-    float refVoltage = 3.3;                         // Operation-voltage of ESP32; don't change!
     uint16_t maxAnalogValue = 4095;                 // Highest value given by analogRead(); don't change!
     uint32_t lastVoltageCheckTimestamp = 0;
     #ifdef NEOPIXEL_ENABLE
@@ -634,12 +633,12 @@ void fileHandlingTask(void *arguments) {
     float measureBatteryVoltage(void) {
         float factor = 1 / ((float) rdiv2/(rdiv2+rdiv1));
         float averagedAnalogValue = 0;
-        int i;
-        for(i=0; i<=19; i++){
+        uint8_t i;
+        for (i=0; i<=19; i++) {
             averagedAnalogValue += (float)analogRead(VOLTAGE_READ_PIN);
         }
         averagedAnalogValue /= 20.0;
-        return (averagedAnalogValue / maxAnalogValue) * refVoltage * factor;
+        return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
     }
 
     void batteryVoltageTester(void) {
@@ -3600,24 +3599,29 @@ void webserverStart(void) {
     // attach AsyncEventSource
     wServer.addHandler(&events);
 
+    // Default
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", management_HTML, templateProcessor);
     });
 
+    // NVS-backup-upload
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
             request->send_P(200, "text/html", backupRecoveryWebsite);
     }, handleUpload);
 
+    // ESP-restart
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", restartWebsite);
         Serial.flush();
         ESP.restart();
     });
 
+    // Filebrowser (json-precached)
     wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
     });
 
+    // Fileexplorer (realtime)
     wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
 
     wServer.on("/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -3666,7 +3670,8 @@ void webserverStart(void) {
                     partname,
                     nvs->size ) ;
         } else {
-            Serial.printf("Partition %s not found!", partname) ;
+            snprintf(logBuf, serialLoglength, "Partition %s not found!", partname);
+            loggerNl(logBuf, LOGLEVEL_ERROR);
             return NULL;
         }
         namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
@@ -3679,7 +3684,8 @@ void webserverStart(void) {
                                         &buf,
                                         sizeof(nvs_page));
             if (result != ESP_OK) {
-                Serial.println(F("Error reading NVS!"));
+                snprintf(logBuf, serialLoglength, "Error reading NVS!");
+                loggerNl(logBuf, LOGLEVEL_ERROR);
                 return false;
             }
 
@@ -3965,7 +3971,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
                     loggerNl(logBuf, LOGLEVEL_ERROR);
             }
         } else {
-            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exitst", srcFullFilePath);
+            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exist", srcFullFilePath);
             loggerNl(logBuf, LOGLEVEL_ERROR);
         }
     } else {

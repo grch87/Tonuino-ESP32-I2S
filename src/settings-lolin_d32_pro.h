@@ -12,6 +12,10 @@
 */
 
 //################## GPIO-configuration ##############################
+// Please note: GPIOs 34, 35, 36, 39 are input-only and don't have pullup-resistors.
+// So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
+// Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+// GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 #ifdef SD_MMC_1BIT_MODE
     // uSD-card-reader (via SD-MMC 1Bit)
     //
@@ -37,7 +41,7 @@
 #define RFID_SCK                        18          // GPIO for clock-signal (RFID)
 
 #ifdef RFID_READER_TYPE_PN5180
-    #define RFID_BUSY                   16          // PN5180 BUSY PIN
+    #define RFID_BUSY                   33          // PN5180 BUSY PIN
     #define RFID_RST                    22          // PN5180 RESET PIN
 #endif
 // I2S (DAC)
@@ -68,7 +72,9 @@
 
 // (optional) Monitoring of battery-voltage via ADC
 #ifdef MEASURE_BATTERY_VOLTAGE
-    #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
+    #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Cannot be changed, it's built in
+    float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
+    float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
 #endif
 
 
