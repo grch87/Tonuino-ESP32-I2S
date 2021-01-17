@@ -3192,7 +3192,18 @@ wl_status_t wifiManager(void) {
         } else {
             loggerNl((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
         }
-        // ...and create a connection with it. If not successful, an access-point is opened
+
+        // Add configration of static IP (if requested)
+        #ifdef STATIC_IP_ENABLE
+            snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(tryStaticIpConfig));
+            loggerNl(logBuf, LOGLEVEL_NOTICE);
+            if (!WiFi.config(local_IP, gateway, subnet, primaryDNS)) {
+                snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(staticIPConfigFailed));
+                loggerNl(logBuf, LOGLEVEL_ERROR);
+            }
+        #endif
+
+        // Try to join local WiFi. If not successful, an access-point is opened
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount=0;
@@ -3753,7 +3764,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         if (request->hasParam("path")) {
             AsyncWebParameter *param = request->getParam("path");
             utf8FilePath = param->value() + "/" + filename;
-           
         } else {
             utf8FilePath = "/" + filename;
         }
@@ -3796,6 +3806,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         // delete task
         vTaskDelete(fileStorageTaskHandle);
     }
+    // send signal to upload function to terminate
+    xQueueSend(explorerFileUploadStatusQueue, &value, 0);
+    vTaskDelete(NULL);
 }
 
 void explorerHandleFileStorageTask(void *parameter) {
@@ -3810,7 +3823,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
     uploadFile = FSystem.open((char *)parameter, "w");
 
-    snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), parameter);
+    snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), (char *) parameter);
     loggerNl(logBuf, LOGLEVEL_INFO);
 
     for(;;) {
