@@ -7,7 +7,8 @@
    Infos: https://www.wemos.cc/en/latest/d32/d32.html
    Schematics: https://www.wemos.cc/en/latest/_static/files/sch_d32_v1.0.0.pdf
    Caveats: GPIO35 (battery monitoring) can't be changed, it's built in
-   Status: untested
+   Status:
+    tested with 2x SPI: RC522 & SD (by biologist79)
 */
 
 
@@ -42,6 +43,8 @@
 #ifdef RFID_READER_TYPE_PN5180
     #define RFID_BUSY                   16          // PN5180 BUSY PIN
     #define RFID_RST                    22          // PN5180 RESET PIN
+    #define RFID_IRQ                    39          // PN5180 IRQ PIN (only needed for low power card detection)
+	#define BUTTON_PIN_BITMASK          0x8000000000// 2^RFID_IRQ in hex
 #endif
 // I2S (DAC)
 #define I2S_DOUT                        25          // Digital out (I2S)
@@ -50,7 +53,7 @@
 
 // Rotary encoder
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-#define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+#define DREHENCODER_DT                  33          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
 #define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
 
 // Control-buttons

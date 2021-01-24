@@ -33,13 +33,14 @@
 
 //################## select SD card mode #############################
 #define SD_MMC_1BIT_MODE            // run SD card in SD-MMC 1Bit mode
-//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!)
+//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!) (Works on ESP32-A1S with RFID via I2C)
 
 
 //################## select RFID reader ##############################
 #define RFID_READER_TYPE_MFRC522_SPI        // use MFRC522 via SPI
 //#define RFID_READER_TYPE_MFRC522_I2C        // use MFRC522 via I2C
-//#define RFID_READER_TYPE_PN5180
+//#define RFID_READER_TYPE_PN5180			  // use PN5180
+//#define PN5180_ENABLE_LPCD                    // enable PN5180 low power card detection: wake up on card detection
 
 
 //#################### Various settings ##############################
@@ -108,12 +109,13 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 
 // (optional) Topics for MQTT
 #ifdef MQTT_ENABLE
-    uint16_t mqttRetryInterval = 15;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
-    uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 15 / mqttMaxRetriesPerInterval 1 => once every 15s
-    #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
+    uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
+    uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
+    #define DEVICE_HOSTNAME "ESP32-Tonuino"         // Name that is used for MQTT
     static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
     static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
-    static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino/Track";
+    static const char topicRfidCmnd[] PROGMEM = "Cmnd/Tonuino/Rfid";
+    static const char topicRfidState[] PROGMEM = "State/Tonuino/Rfid";
     static const char topicTrackState[] PROGMEM = "State/Tonuino/Track";
     static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/Tonuino/TrackControl";
     static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/Tonuino/Loudness";

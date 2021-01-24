@@ -24,12 +24,12 @@
     //  SCKK    14
     //  MISO    2   // hardware pullup may required
 #else
-    // uSD-card-reader (via SPI)
-    #define SPISD_CS                        15          // GPIO for chip select (SD)
+    // uSD-card-reader (via SPI) => Cannot be changed, it's built in!
+    #define SPISD_CS                     4          // GPIO for chip select (SD)
     #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  13          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                  16          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #define SPISD_MOSI              23          // GPIO for master out slave in (SD) => not necessary for single-SPI
+        #define SPISD_MISO              19          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+        #define SPISD_SCK               18          // GPIO for clock-signal (SD) => not necessary for single-SPI
     #endif
 #endif
 
@@ -43,6 +43,8 @@
 #ifdef RFID_READER_TYPE_PN5180
     #define RFID_BUSY                   33          // PN5180 BUSY PIN
     #define RFID_RST                    22          // PN5180 RESET PIN
+    #define RFID_IRQ                    39          // PN5180 IRQ PIN (only needed for low power card detection)
+	#define BUTTON_PIN_BITMASK          0x8000000000// 2^RFID_IRQ in hex
 #endif
 // I2S (DAC)
 #define I2S_DOUT                        25          // Digital out (I2S)
@@ -60,7 +62,7 @@
 #define PREVIOUS_BUTTON                 13           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
 
 // (optional) Power-control
-#define POWER                           5          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+#define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
 
 // (optional) Neopixel
 #define LED_PIN                         12          // GPIO for Neopixel-signaling
@@ -77,10 +79,7 @@
     float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
 #endif
 
-
-
-
-// (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
+// (optional) For measuring battery-voltage a voltage-divider is already onboard. Connect a LiPo and use it!
 #ifdef MEASURE_BATTERY_VOLTAGE
     uint8_t rdiv1 = 116;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
     uint16_t rdiv2 = 100;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
