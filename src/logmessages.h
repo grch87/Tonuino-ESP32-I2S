@@ -163,7 +163,7 @@ static const char notADirectory[] PROGMEM = "Kein Verzeichnis";
 static const char sdMountedMmc1BitMode[] PROGMEM = "Versuche SD-Karte wird im SD_MMC-Modus (1 Bit) zu mounten...";
 static const char sdMountedSpiMode[] PROGMEM = "Versuche SD-Karte wird im SPI-Modus zu mounten...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
-static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+static const char restartWebsite[] PROGMEM = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen";
 static const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung";
@@ -173,3 +173,4 @@ static const char tryStaticIpConfig[] PROGMEM = "Statische IP-Konfiguration wird
 static const char staticIPConfigFailed[] PROGMEM = "Statische IP-Konfiguration fehlgeschlagen";
 static const char wakeUpRfidNoIso14443[] PROGMEM = "ESP32 wurde vom Kartenleser aus dem Deepsleep aufgeweckt. Allerdings wurde keine ISO-14443-Karte gefunden. Gehe zurück in den Deepsleep...";
 static const char lowPowerCardSuccess[] PROGMEM = "Kartenerkennung via 'low power' erfolgreich durchgeführt";
+static const char rememberLastVolume[] PROGMEM = "Lautstärke vor dem letzten Shutdown wird wiederhergestellt. Dies überschreibt die Einstellung der initialen Lautstärke aus der GUI.";

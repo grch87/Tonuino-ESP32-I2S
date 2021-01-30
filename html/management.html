@@ -4,15 +4,15 @@
     <title>ESPuino-Konfiguration</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://ts-cs.de/tonuino/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://espuino.de/espuino/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
-    <script src="https://ts-cs.de/tonuino/js/jquery.min.js"></script>
+    <script src="https://espuino.de/espuino/js/jquery.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
-    <script src="https://ts-cs.de/tonuino/js/popper.min.js"></script>
-    <script src="https://ts-cs.de/tonuino/js/bootstrap.min.js"></script>
+    <script src="https://espuino.de/espuino/js/popper.min.js"></script>
+    <script src="https://espuino.de/espuino/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
@@ -105,9 +105,7 @@
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
     <div class="col-md-12">
     <a class="float-left navbar-brand">
-        <img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/html/tonuino_logo.png"
-             width="30" height="30" class="d-inline-block align-top" alt=""/>
-        Tonuino
+        ESPuino
     </a>
 
     <a class="reboot float-right nav-link" href="/restart"><i class="fas fa-power-off"></i> Neustart</a>
@@ -137,8 +135,8 @@
                     </div>
                     <label for="pwd">Passwort:</label>
                     <input type="password" class="form-control" id="pwd" placeholder="Passwort" name="pwd" required>
-                    <label for="hostname">Tonuino-Name (Hostname):</label>
-                    <input type="text" class="form-control" id="hostname" placeholder="tonuino" name="hostname"
+                    <label for="hostname">ESPuino-Name (Hostname):</label>
+                    <input type="text" class="form-control" id="hostname" placeholder="espuino" name="hostname"
                            value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
                 </div>
                 <br>
@@ -162,7 +160,6 @@
 						<input id="explorerUploadedFiles" type="file" class="form-control-file" name="explorerUploadFiles" multiple> <input type="submit" class="btn btn-primary" id="submit" value="Hochladen">
 						<progress id="explorerUploadProgress" value="0" max="100"></progress> <span id="explorerUploadPercent"></span>
 					</form>
-					
 				</div>
             </fieldset>
         </div>
@@ -211,7 +208,7 @@
                     <div class="invalid-feedback">
                         Bitte eine 12-stellige Zahl eingeben.
                     </div>
-                    <label for="modId">Konfiguraiton</label>
+                    <label for="modId">Konfiguration</label>
                     <select class="form-control" id="modId" name="modId">
                         <option value="100">Tastensperre</option>
                         <option value="101">Schlafen nach 15 Minuten</option>
@@ -883,7 +880,7 @@
         var myJSON = JSON.stringify(myObj);
         socket.send(myJSON);
         tm = setTimeout(function () {
-            toastr.warning('Die Verbindung zum Tonuino ist unterbrochen! Bitte Seite neu laden.');
+            toastr.warning('Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.');
         }, 5000);
     }
 

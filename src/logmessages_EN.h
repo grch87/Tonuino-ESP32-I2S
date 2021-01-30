@@ -163,7 +163,7 @@ static const char notADirectory[] PROGMEM = "Not a directory";
 static const char sdMountedMmc1Bit[] PROGMEM = "SD-card in SD_MMC 1 Bit-mode configured...";
 static const char sdMountedSpiMode[] PROGMEM = "SD card mounted in SPI-mode configured...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
-static const char restartWebsite[] PROGMEM = "<p>Tonuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
+static const char restartWebsite[] PROGMEM = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-message received";
 static const char trackPausedAtPos[] PROGMEM = "Track paused at position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Free heap before FTP-allocation";
@@ -173,3 +173,4 @@ static const char tryStaticIpConfig[] PROGMEM = "Performing static IP-configurat
 static const char staticIPConfigFailed[] PROGMEM = "Static IP-configuration failed";
 static const char wakeUpRfidNoIso14443[] PROGMEM = "Wakeup caused by low power card-detection. RF-field changed but no ISO-14443 card on reader was found. So I'll return back to sleep now...";
 static const char lowPowerCardSuccess[] PROGMEM = "Switch to low power card-detection: success";
+static const char rememberLastVolume[] PROGMEM = "Restored volume used before last shutdown. This overwrites the initial volume configured via webgui.";
