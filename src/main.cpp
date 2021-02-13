@@ -106,7 +106,7 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 
 // Operation Mode
 #define OPMODE_NORMAL                   0           // Normal mode
-#define OPMODE_BLUETOOTH                1           // Bluetooth mode. WiFi is deactivated. Music from SD can't be played.
+#define OPMODE_BLUETOOTH                1           // Bluetooth mode. WiFi is deactivated. Music from SD and webstreams can't be played.
 
 // Track-Control
 #define STOP                            1           // Stop play
@@ -4227,6 +4227,7 @@ void setup() {
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI
         mfrc522.PCD_Init();
+        mfrc522.PCD_SetAntennaGain(rfidGain);
         delay(50);
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
@@ -4542,7 +4543,7 @@ void setup() {
             .data_in_num = I2S_PIN_NO_CHANGE
         };
         a2dp_sink->set_pin_config(pin_config);
-        a2dp_sink->start("ESPuino");
+        a2dp_sink->start((char *) FPSTR(nameBluetoothDevice));
     } else {
         esp_bt_mem_release(ESP_BT_MODE_BTDM);
     #endif
@@ -4633,7 +4634,6 @@ void loop() {
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT
         recoverLastRfidPlayed();
     #endif
-    
 }
 
 
