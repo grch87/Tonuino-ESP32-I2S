@@ -1,18 +1,11 @@
-#ifndef __ESPUINO_SETTINGS_LOLIN_D32_H__
-#define __ESPUINO_SETTINGS_LOLIN_D32_H__
+#ifndef __ESPUINO_SETTINGS_CUSTOM_H__
+#define __ESPUINO_SETTINGS_CUSTOM_H__
     #include "Arduino.h"
 
     //######################### INFOS ####################################
-    /* This is a develboard-specific config-file for *Wemos Lolin D32*. Specific doesn't mean it's only working with this board.
-    Lolin D32 is the successor of Lolin32 and the "little brother" of Wemos Lolin D32 pro.
-    PCB: https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin%20D32
-    Infos: https://www.wemos.cc/en/latest/d32/d32.html
-    Schematics: https://www.wemos.cc/en/latest/_static/files/sch_d32_v1.0.0.pdf
-    Caveats: GPIO35 (battery monitoring) can't be changed, it's built in
-    Status:
-        tested with 2x SPI: RC522 & SD (by biologist79)
+    /* This is not a develboard-specific config-file. It's intended for your own use.
+    It's been originally derived from lolin32, but just change it according your needs!
     */
-
 
     //################## GPIO-configuration ##############################
     // Please note: GPIOs 34, 35, 36, 39 are input-only and don't have pullup-resistors.
@@ -55,14 +48,14 @@
     // Rotary encoder
     #ifdef USEROTARY_ENABLE
         #define DREHENCODER_CLK             34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-        #define DREHENCODER_DT              33          // Info: Lolin D32 is using 35 for battery-voltage-monitoring!
-        #define DREHENCODER_BUTTON          32          // Button is used to switch ESPuino on and off
+        #define DREHENCODER_DT              35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+        #define DREHENCODER_BUTTON          32          // Button 3: is used to switch ESPuino on and off
     #endif
 
     // Control-buttons (set to 99 to disable)
     #define NEXT_BUTTON                      4          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
-    #define PAUSEPLAY_BUTTON                 5          // Button 2: GPIO to detect pause/play
+    #define PAUSEPLAY_BUTTON                 0          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 
@@ -83,14 +76,15 @@
 
     // (optional) Monitoring of battery-voltage via ADC
     #ifdef MEASURE_BATTERY_VOLTAGE
-        #define VOLTAGE_READ_PIN            35          // Cannot be changed, it's built in
-        float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
-        float offsetVoltage = 0.2;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
+        #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
+        float referenceVoltage = 3.35;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
+        float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
     #endif
 
+    // (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
     #ifdef MEASURE_BATTERY_VOLTAGE
-        uint8_t rdiv1 = 100;                            // Cannot be changed, it's built in
-        uint16_t rdiv2 = 100;                           // Cannot be changed, it's built in
+        uint8_t rdiv1 = 129;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
+        uint16_t rdiv2 = 129;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
     #endif
 
     // (Optional) remote control via infrared

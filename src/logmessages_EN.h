@@ -133,6 +133,7 @@ static const char wroteMqttUserToNvs[] PROGMEM = "Stored MQTT-user to NVS.";
 static const char restoredMqttUserFromNvs[] PROGMEM = "Restored MQTT-user from NVS";
 static const char wroteMqttPwdToNvs[] PROGMEM = "Stored MQTT-password to NVS.";
 static const char restoredMqttPwdFromNvs[] PROGMEM = "Restored MQTT-password from NVS";
+static const char restoredMqttPortFromNvs[] PROGMEM = "Restored MQTT-port from NVS";
 static const char mqttWithPwd[] PROGMEM = "Try to connect to MQTT-server with user und password";
 static const char mqttWithoutPwd[] PROGMEM = "Try to connect to MQTT-server without user und password";
 static const char ssidNotFoundInNvs[] PROGMEM = "Unable to find SSID to NVS.";
@@ -160,10 +161,10 @@ static const char failedToOpenFileForAppending[] PROGMEM = "Failed to open file 
 static const char listingDirectory[] PROGMEM = "Listing directory";
 static const char failedToOpenDirectory[] PROGMEM = "Failed to open directory";
 static const char notADirectory[] PROGMEM = "Not a directory";
-static const char sdMountedMmc1Bit[] PROGMEM = "SD-card in SD_MMC 1 Bit-mode configured...";
-static const char sdMountedSpiMode[] PROGMEM = "SD card mounted in SPI-mode configured...";
+static const char sdMountedMmc1BitMode[] PROGMEM = "SD card mounted in SPI-mode configured...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
+static const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino is being shutdown...</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-message received";
 static const char trackPausedAtPos[] PROGMEM = "Track paused at position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Free heap before FTP-allocation";
@@ -174,3 +175,4 @@ static const char staticIPConfigFailed[] PROGMEM = "Static IP-configuration fail
 static const char wakeUpRfidNoIso14443[] PROGMEM = "Wakeup caused by low power card-detection. RF-field changed but no ISO-14443 card on reader was found. So I'll return back to sleep now...";
 static const char lowPowerCardSuccess[] PROGMEM = "Switch to low power card-detection: success";
 static const char rememberLastVolume[] PROGMEM = "Restored volume used before last shutdown. This overwrites the initial volume configured via webgui.";
+static const char unableToStartFtpServer[] PROGMEM = "FTP-server cannot be started. This is because FTP-service is already active of because WiFi is unavailable.";

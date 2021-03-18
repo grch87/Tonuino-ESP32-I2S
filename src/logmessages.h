@@ -133,6 +133,7 @@ static const char wroteMqttUserToNvs[] PROGMEM = "MQTT-User wurde ins NVS geschr
 static const char restoredMqttUserFromNvs[] PROGMEM = "MQTT-User wurde aus NVS geladen";
 static const char wroteMqttPwdToNvs[] PROGMEM = "MQTT-Passwort wurde ins NVS geschrieben.";
 static const char restoredMqttPwdFromNvs[] PROGMEM = "MQTT-Passwort wurde aus NVS geladen";
+static const char restoredMqttPortFromNvs[] PROGMEM = "MQTT-Port wurde aus NVS geladen";
 static const char mqttWithPwd[] PROGMEM = "Verbinde zu MQTT-Server mit User und Passwort";
 static const char mqttWithoutPwd[] PROGMEM = "Verbinde zu MQTT-Server ohne User und Passwort";
 static const char ssidNotFoundInNvs[] PROGMEM = "SSID wurde im NVS nicht gefunden.";
@@ -164,6 +165,7 @@ static const char sdMountedMmc1BitMode[] PROGMEM = "Versuche SD-Karte wird im SD
 static const char sdMountedSpiMode[] PROGMEM = "Versuche SD-Karte wird im SPI-Modus zu mounten...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+static const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino wird ausgeschaltet...</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen";
 static const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung";
@@ -174,3 +176,4 @@ static const char staticIPConfigFailed[] PROGMEM = "Statische IP-Konfiguration f
 static const char wakeUpRfidNoIso14443[] PROGMEM = "ESP32 wurde vom Kartenleser aus dem Deepsleep aufgeweckt. Allerdings wurde keine ISO-14443-Karte gefunden. Gehe zurück in den Deepsleep...";
 static const char lowPowerCardSuccess[] PROGMEM = "Kartenerkennung via 'low power' erfolgreich durchgeführt";
 static const char rememberLastVolume[] PROGMEM = "Lautstärke vor dem letzten Shutdown wird wiederhergestellt. Dies überschreibt die Einstellung der initialen Lautstärke aus der GUI.";
+static const char unableToStartFtpServer[] PROGMEM = "Der FTP-Server konnte nicht gestartet werden. Entweder weil er ist bereits gestartet oder kein WLAN verfügbar ist.";
