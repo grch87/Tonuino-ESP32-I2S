@@ -17,10 +17,13 @@
     99: custom                   => settings-custom.h
     more to come...
     */
-    #define HAL 4                // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 99 = custom
+    #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
+        #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 99 = custom
+    #endif
 
 
     //########################## MODULES #################################
+    //#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555
     #define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
     //#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
     #define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
@@ -40,7 +43,7 @@
 
     //################## select SD card mode #############################
     #define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode
-    //#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!) (Works on ESP32-A1S with RFID via I2C)
+    //#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!)
 
 
     //################## select RFID reader ##############################
@@ -48,14 +51,24 @@
     //#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
     //#define RFID_READER_TYPE_PN5180       // use PN5180
 
-    #ifdef RFID_READER_TYPE_PN5180
-        //#define PN5180_ENABLE_LPCD        // enable PN5180 low power card detection. Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
+    #ifdef RFID_READER_TYPE_MFRC522_I2C
+        #define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
     #endif
 
-    #ifdef RFID_READER_TYPE_MFRC522_SPI
+    #ifdef RFID_READER_TYPE_PN5180
+        //#define PN5180_ENABLE_LPCD        // Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
+    #endif
+
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
         uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
     #endif
 
+
+    //############# Port-expander-configuration ######################
+    #ifdef PORT_EXPANDER_ENABLE
+        const uint8_t portsToRead = 2;      // PCA9555 has two ports à 8 channels. If 8 channels are sufficient, set to 1 and only use the first port!
+        uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555
+    #endif
 
     //################## BUTTON-Layout ##################################
     /* German documentation: https://forum.espuino.de/t/das-dynamische-button-layout/224
@@ -175,6 +188,9 @@
     #ifdef HEADPHONE_ADJUST_ENABLE
         uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
     #endif
+
+    // Seekmode-configuration
+    uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
 
     // (optional) Topics for MQTT
     #ifdef MQTT_ENABLE
